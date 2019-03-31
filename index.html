@@ -1,118 +1,114 @@
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Fast Decimals to Fractions</title>
-    <script type="text/javascript">
-      function grabDecimalInput() {
-        var decimalDiv = document.getElementById('decimal');
-        var decimal = Math.abs(decimalDiv.value);
-        return isNaN(decimal) ? 0 : decimal;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Fast Decimals to Fractions</title>
+  <script type="text/javascript">
+    function grabDecimalInput() {
+      var decimalDiv = document.getElementById('decimal');
+      var decimal = Math.abs(decimalDiv.value);
+      return isNaN(decimal) ? 0 : decimal;
+    }
+
+    function clearFractionsOutput() {
+      var fractionsDiv = document.getElementById('fractions');
+      fractionsDiv.innerHTML = '';
+    }
+
+    function appendFractionsOutput(numerator, denominator) {
+      var fractionsDiv = document.getElementById('fractions');
+      fractionsDiv.innerHTML +=
+        '<b>' + Math.abs(numerator) + '</b>' +
+        '/<b>' + Math.abs(denominator) + '</b>' +
+        ' = ' + numerator / denominator + '<br>';
+    }
+
+    function approximateFractions() {
+      var d = grabDecimalInput();
+      clearFractionsOutput();
+
+      var numerators = [0, 1];
+      var denominators = [1, 0];
+
+      var maxNumerator = getMaxNumerator(d);
+      var d2 = d;
+      var calcD, prevCalcD = NaN;
+      for (var i = 2; i < 1000; i++) {
+        var L2 = Math.floor(d2);
+        numerators[i] = L2 * numerators[i - 1] + numerators[i - 2];
+        if (Math.abs(numerators[i]) > maxNumerator) return;
+
+        denominators[i] = L2 * denominators[i - 1] + denominators[i - 2];
+
+        calcD = numerators[i] / denominators[i];
+        if (calcD == prevCalcD) return;
+
+        appendFractionsOutput(numerators[i], denominators[i]);
+
+        if (calcD == d) return;
+
+        prevCalcD = calcD;
+
+        d2 = 1 / (d2 - L2);
       }
+    }
 
-      function clearFractionsOutput() {
-        var fractionsDiv = document.getElementById('fractions');
-        fractionsDiv.innerHTML = '';
-      }
+    function getMaxNumerator(f) {
+      var f2 = null;
+      var ixe = f.toString().indexOf("E");
+      if (ixe == -1) ixe = f.toString().indexOf("e");
+      if (ixe == -1) f2 = f.toString();
+      else f2 = f.toString().substring(0, ixe);
 
-      function appendFractionsOutput(numerator, denominator) {
-        var fractionsDiv = document.getElementById('fractions');
-        fractionsDiv.innerHTML +=
-          '<b>' + Math.abs(numerator) + '</b>' +
-          '/<b>' + Math.abs(denominator) + '</b>' +
-          ' = ' + numerator / denominator + '<br>';
-      }
+      var digits = null;
+      var ix = f2.toString().indexOf(".");
+      if (ix == -1) digits = f2;
+      else if (ix == 0) digits = f2.substring(1, f2.length);
+      else if (ix < f2.length) digits = f2.substring(0, ix) + f2.substring(ix + 1, f2.length);
 
-      function approximateFractions() {
-        var d = grabDecimalInput();
-        clearFractionsOutput();
+      var L = digits;
 
-        var numerators = [0, 1];
-        var denominators = [1, 0];
+      var numDigits = L.toString().length;
+      var L2 = f;
+      var numIntDigits = L2.toString().length;
+      if (L2 == 0) numIntDigits = 0;
+      var numDigitsPastDecimal = numDigits - numIntDigits;
 
-        var maxNumerator = getMaxNumerator(d);
-        var d2 = d;
-        var calcD, prevCalcD = NaN;
-        for (var i = 2; i < 1000; i++) {
-          var L2 = Math.floor(d2);
-          numerators[i] = L2 * numerators[i - 1] + numerators[i - 2];
-          if (Math.abs(numerators[i]) > maxNumerator) return;
+      for (var i = numDigitsPastDecimal; i > 0 && L % 2 == 0; i--) L /= 2;
+      for (var i = numDigitsPastDecimal; i > 0 && L % 5 == 0; i--) L /= 5;
 
-          denominators[i] = L2 * denominators[i - 1] + denominators[i - 2];
-
-          calcD = numerators[i] / denominators[i];
-          if (calcD == prevCalcD) return;
-
-          appendFractionsOutput(numerators[i], denominators[i]);
-
-          if (calcD == d) return;
-
-          prevCalcD = calcD;
-
-          d2 = 1 / (d2 - L2);
-        }
-      }
-
-      function getMaxNumerator(f) {
-        var f2 = null;
-        var ixe = f.toString().indexOf("E");
-        if (ixe == -1) ixe = f.toString().indexOf("e");
-        if (ixe == -1) f2 = f.toString();
-        else f2 = f.toString().substring(0, ixe);
-
-        var digits = null;
-        var ix = f2.toString().indexOf(".");
-        if (ix == -1) digits = f2;
-        else if (ix == 0) digits = f2.substring(1, f2.length);
-        else if (ix < f2.length) digits = f2.substring(0, ix) + f2.substring(ix + 1, f2.length);
-
-        var L = digits;
-
-        var numDigits = L.toString().length;
-        var L2 = f;
-        var numIntDigits = L2.toString().length;
-        if (L2 == 0) numIntDigits = 0;
-        var numDigitsPastDecimal = numDigits - numIntDigits;
-
-        for (var i = numDigitsPastDecimal; i > 0 && L % 2 == 0; i--) L /= 2;
-        for (var i = numDigitsPastDecimal; i > 0 && L % 5 == 0; i--) L /= 5;
-
-        return L;
-      }
-    </script>
-  </head>
-  <body onload="approximateFractions(); document.getElementById('decimal').focus();">
-    <font face="Georgia, Times Roman">
-      <h1><i>Fast</i> Decimal to Fraction Approximations</h1>
-      <table border="0">
-        <tbody>
-          <tr>
-            <td>
-              <input id="decimal" type="text" onkeyup="approximateFractions();">
-              <div id="fractions"
-                style="border: 1px solid #000000; height: 300px; overflow: auto; padding: 5px; font-family: monospace; font-size: 10pt;">
-                <b>0</b>/<b>1</b> = 0<br></div>
-            </td>
-            <td style="padding-left: 10px;" valign="top">
-              <font face="Georgia, Times Roman">
-                <br>
-                That's right, decimals to fractions, opposite the usual direction.
-                <p>
-                  Just type a number in the text field on top.
-                </p>
-              </font>
-              <p>
-                <font face="Georgia, Times Roman">
-                  <u>Some sample decimals:</u><br>
-                  pi = <b>3.14159265358979</b><br>
-                  sqrt(2) = <b>1.414213562</b><br>
-                  Golden Ratio = <b>1.618033988</b><br>
-                  Earth's tropical year = <b>365.2422</b> days
-                </font>
-              </p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </font>
-  </body>
+      return L;
+    }
+  </script>
+</head>
+<body onload="approximateFractions(); document.getElementById('decimal').focus();" style="font-family: 'Georgia', 'Times New Roman', serif">
+  <h1><i>Fast</i> Decimal to Fraction Approximations</h1>
+  <table border="0">
+    <tbody>
+      <tr>
+        <td>
+          <input id="decimal" type="text" onkeyup="approximateFractions();">
+          <div id="fractions"
+            style="border: 1px solid #000000; height: 300px; overflow: auto; padding: 5px; font-family: monospace; font-size: 10pt;">
+            <b>0</b>/<b>1</b> = 0<br></div>
+        </td>
+        <td style="padding-left: 10px;" valign="top">
+          <br>
+          That's right, decimals to fractions, opposite the usual direction.
+          <p>
+            Just type a number in the text field on top.
+          </p>
+          <p>
+              <u>Some sample decimals:</u><br>
+              pi = <b>3.14159265358979</b><br>
+              sqrt(2) = <b>1.414213562</b><br>
+              Golden Ratio = <b>1.618033988</b><br>
+              Earth's tropical year = <b>365.2422</b> days
+          </p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</body>
 </html>
